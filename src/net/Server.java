@@ -25,6 +25,7 @@ public class Server {
     // read buffer
     private ByteBuffer readBuffer;
     private int bufferSize = 10240;
+    private boolean fileServer = false;
 
     public Server(int port){
         try {
@@ -37,6 +38,24 @@ public class Server {
             connections = 0;
             socks = new HashMap<>();
             readBuffer = ByteBuffer.allocate(bufferSize);
+            fileServer = false;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Server(int port, boolean isFile){
+        try {
+            serverChannel = ServerSocketChannel.open();
+            serverChannel.socket().bind(new InetSocketAddress(port));
+            selector = Selector.open();
+            serverChannel.configureBlocking(false);
+
+            serverChannel.register(selector, SelectionKey.OP_ACCEPT);
+            connections = 0;
+            socks = new HashMap<>();
+            readBuffer = ByteBuffer.allocate(bufferSize);
+            fileServer = isFile;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -75,6 +94,12 @@ public class Server {
                 // Incoming data
                 else if(key.isReadable()){
                     SocketChannel sc = (SocketChannel) key.channel();
+
+                    if(fileServer){
+                        ret.sock = sc;
+                        ret.type = NetObject.NetType.DATA;
+                        continue;
+                    }
 
                     readBuffer.clear();
                     // Switch to read mode

@@ -1,49 +1,47 @@
 package whfs;
 
 import config.Config;
+import debug.Debug;
+import file.FileManager;
 import msg.MessageManager;
 import net.Client;
 import net.NetObject;
+import net.Server;
+import java.io.*;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+
 
 /**
  * Created by wenhanl on 14-11-3.
  */
 public class DataNode extends Thread{
+    private Client heartbeatClient = null;
+    private MessageManager heartbeat = null;
+    private Server fileServer = null;
 
     @Override
     public void run() {
-        Client client = null;
         try {
-            client = new Client("localhost", Config.NAMENODE_PORT);
+            heartbeatClient = new Client("localhost", Config.NAMENODE_PORT);
         } catch (IOException e) {
             System.out.println(e.getMessage());
             return;
         }
-        final MessageManager msgManager = new MessageManager(client);
+        heartbeat = new MessageManager(heartbeatClient);
 
-        Thread sendHeartbeat = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while(true){
-                    try {
-                        Thread.sleep(3000);
-                    } catch (InterruptedException e) {
-                        System.err.println(e.getMessage());
-                        break;
-                    }
-
-                    msgManager.sendHeartbeat();
-                }
-            }
-        });
+        // Start a thread to send heartbeats
+        Thread sendHeartbeat = startHeartbeat();
         sendHeartbeat.start();
+
+        // Start another thread to receive files
+        startFileServer();
 
         boolean closed = false;
         while(!closed){
-            NetObject obj = client.listen();
+            NetObject obj = heartbeatClient.listen();
 
             switch (obj.type){
                 case DATA:
@@ -58,5 +56,87 @@ public class DataNode extends Thread{
             }
         }
 
+    }
+
+    /**
+     * Start sending heartbeat daemon
+     * @return daemon thread
+     */
+    private Thread startHeartbeat(){
+        return new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(true){
+                    try {
+                        Thread.sleep(3000);
+                    } catch (InterruptedException e) {
+                        System.err.println(e.getMessage());
+                        break;
+                    }
+
+                    heartbeat.sendHeartbeat();
+                }
+            }
+        });
+    }
+
+    /**
+     * Start a file server daemon
+     */
+    private void startFileServer(){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                // Start a file server
+                fileServer = new Server(Config.DATANODE_FILE_PORT, true);
+
+                // Create a directory for temp file storage
+                File tempDir = FileManager.createDir("/tmp/whfstemp");
+
+                // WHFS base dir
+                String whfsBase = Config.WHFS_BASE_PATH;
+
+                while (true) {
+                    NetObject obj = fileServer.listen();
+
+                    switch (obj.type) {
+                        case DATA:
+                            String localStore = tempDir.getAbsolutePath() + "/temp";
+                            File temp = new File(localStore);
+                            FileManager.receiveFile(localStore, obj.sock);
+
+                            // Retrieve header
+                            String[] header = FileManager.retrieveHeader(temp).split("\t");
+                            String fromHost = header[0];
+                            String blockName = header[1];
+
+                            // Get specific directory for fromHost
+                            File fromHostDir = FileManager.createDir(whfsBase + fromHost);
+
+                            // Move temp to block file specified in header
+                            String blockFile = fromHostDir.getAbsolutePath() + "/" + blockName;
+                            FileManager.mv(temp, blockFile);
+                            temp.delete();
+
+                            // Close socket every time file received
+                            try {
+                                obj.sock.close();
+                            } catch (IOException e) {
+                                System.out.println(e.getMessage());
+                            }
+                            break;
+                        case CONNECTION:
+                            System.out.println("Connection estanblished");
+                            break;
+                        case EXCEPTION:
+                            System.out.println("Connection reset");
+                            break;
+                        default:
+                            System.out.println("Type Error");
+                    }
+
+                }
+            }
+        }).start();
     }
 }

@@ -1,11 +1,16 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.util.concurrent.BlockingDeque;
 
 /**
  * Created by wenhanl on 14-11-3.
  */
 public class Console extends Thread{
+
+    private BlockingDeque<String> blockingDeque = null;
+
+    public Console(BlockingDeque<String> q){
+        blockingDeque = q;
+    }
 
     @Override
     public void run() {
@@ -14,10 +19,19 @@ public class Console extends Thread{
         while(true){
             try {
                 userInput = buffInput.readLine();
-                System.out.println(userInput);
+                commandHandler(userInput);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    void commandHandler(String input){
+        try {
+            blockingDeque.put(input);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
     }
 }
