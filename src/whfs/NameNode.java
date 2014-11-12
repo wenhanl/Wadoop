@@ -50,6 +50,7 @@ public class NameNode extends Thread {
         nodeBlocks = new ConcurrentHashMap<>();
         blockToNode = new ConcurrentHashMap<>();
         fileBlock = new HashMap<>();
+        whfsFiles = Collections.synchronizedList(new ArrayList<String>());
     }
 
     @Override
@@ -215,7 +216,8 @@ public class NameNode extends Thread {
         int blockIndex = 0;
         ArrayList<String> currBlocks;
         for(File file : splitFiles){
-            String hostname = dataNodeList.get(nodeIndex).split("/")[0];
+            String fullname = dataNodeList.get(nodeIndex).split("/")[1];
+            String hostname = fullname.split(":")[0];
 
             // Register block to node
             String indexStr = blockIndex < 10 ? "0" + String.valueOf(blockIndex) : String.valueOf(blockIndex);

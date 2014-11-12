@@ -11,8 +11,6 @@ import java.util.Scanner;
  * Created by wenhanl on 14-11-11.
  */
 public class FileManager {
-    public static enum Type { SERVER, CLIENT }
-    private Type type;
 
     /**
      * Transfer local file to remote host
@@ -83,11 +81,30 @@ public class FileManager {
      * @param header
      */
     public static void addHeader(File file, String header){
+        String tempPath = "/tmp/headerTemp";
+
         try {
-            RandomAccessFile f = new RandomAccessFile(file, "rw");
-            f.seek(0);
-            f.write(header.getBytes());
-            f.close();
+            Scanner scanner = new Scanner(file);
+            FileWriter writer = new FileWriter(tempPath);
+
+            // Write in header first
+            writer.write(header);
+
+            while(scanner.hasNextLine()){
+                writer.write(scanner.nextLine());
+                writer.write("\n");
+
+            }
+
+            writer.flush();
+
+            // Save old path and delete
+            String oldPath = file.getAbsolutePath();
+            file.delete();
+
+            // Move added header temp to old path
+            File temp = new File(tempPath);
+            temp.renameTo(new File(oldPath));
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }

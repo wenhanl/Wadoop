@@ -24,5 +24,7 @@ public class Master {
         // Start User Console
         Console console = new Console(fsMsgQueue);
         console.start();
+
+
     }
 }
