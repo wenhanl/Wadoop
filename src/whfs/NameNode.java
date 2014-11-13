@@ -202,6 +202,13 @@ public class NameNode extends Thread {
             }
         }
 
+        Collections.sort(splitFiles, new Comparator<File>() {
+            @Override
+            public int compare(File o1, File o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
+
         // Divide blocks by nodes
         int numNodes = dataNodeList.size();
         if(numNodes == 0){
