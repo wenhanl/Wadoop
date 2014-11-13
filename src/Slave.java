@@ -6,7 +6,11 @@ import whfs.DataNode;
 public class Slave {
 
     public static void main(String[] args){
-        DataNode dataNode = new DataNode();
+        if(args.length != 1){
+            System.out.println("Usage: java Slave <Master_address>");
+        }
+
+        DataNode dataNode = new DataNode(args[0]);
         dataNode.start();
     }
 }

@@ -21,11 +21,16 @@ public class DataNode extends Thread{
     private Client heartbeatClient = null;
     private MessageManager heartbeat = null;
     private Server fileServer = null;
+    private String remoteAddr = null;
+
+    public DataNode(String remoteAddr){
+        this.remoteAddr = remoteAddr;
+    }
 
     @Override
     public void run() {
         try {
-            heartbeatClient = new Client("localhost", Config.NAMENODE_PORT);
+            heartbeatClient = new Client(remoteAddr, Config.NAMENODE_PORT);
         } catch (IOException e) {
             System.out.println(e.getMessage());
             return;
