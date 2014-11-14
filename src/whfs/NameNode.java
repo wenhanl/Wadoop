@@ -136,7 +136,8 @@ public class NameNode extends Thread {
                         time += 2000;
                         if (time >= Config.HEARTBEAT_TIMEOUT){
                             System.out.println("DataNode " + addr + " timeout");
-                            deleteDataNode(addr);
+
+                            heartBeatTimeoutAction(addr);
                         }
                         nodeLastHeartbeat.put(addr, time);
                     }
@@ -249,8 +250,10 @@ public class NameNode extends Thread {
                 blockToNode.put(blockName, currNodes);
 
                 // Add header to file (hostname and block name)
-                String header = hostname + "\t" + blockName + "\n";
-                FileManager.addHeader(file, header);
+                if(rep == 0) {
+                    String header = hostname + "\t" + blockName + "\n";
+                    FileManager.addHeader(file, header);
+                }
 
                 // Transfer file to remote DataNode
                 FileManager.transferFile(file, hostname, Config.DATANODE_FILE_PORT);
@@ -309,5 +312,54 @@ public class NameNode extends Thread {
                 nodeLastHeartbeat.put(msg.getAddr().toString(), 0);
                 break;
         }
+    }
+
+    private synchronized void heartBeatTimeoutAction(String addr){
+        // Remove from node list and heartbeat list
+        deleteDataNode(addr);
+        String hostname = getHostname(addr);
+        ArrayList<String> blockList = nodeBlocks.get(hostname);
+
+        for(String block : blockList){
+            ArrayList<String> nodelist = blockToNode.get(block);
+
+            // Remove addr from this block's blockToNode map
+            nodelist.remove(hostname);
+            blockToNode.put(block, nodelist);
+
+
+            // When there is more than 1 node have this block, move it to node without this block
+            if(nodelist.size() > 0 && dataNodeList.size() > 1) {
+                String from = nodelist.get(0);
+                String to = null;
+                for(String node : dataNodeList){
+                    String host = getHostname(node);
+                    if(!nodelist.contains(host)){
+                        to = host;
+                    }
+                }
+
+                // Inform from host to transfer a copy of this block to "to" host
+                if(to != null){
+                    blockFromTo(from, to);
+                    // Add this block to "To" node
+                    ArrayList<String> toBlock = nodeBlocks.get(to);
+                    toBlock.add(block);
+                    nodeBlocks.put(to, toBlock);
+                }
+            }
+        }
+
+        // Remove from node to block list
+        nodeBlocks.remove(hostname);
+
+    }
+
+    private void blockFromTo(String from, String to){
+        
+    }
+
+    private String getHostname(String addr){
+        return addr.split("/")[1].split(":")[0];
     }
 }
