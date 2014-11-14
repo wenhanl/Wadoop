@@ -21,11 +21,14 @@ public class NameNode extends Thread {
     // Map from fileName to block list
     private HashMap<String, ArrayList<Integer>> fileBlock = null;
 
+    //file in which nodes --  CGJ
+    private static HashMap<String, ArrayList<Integer>> fileNodes = null;
+
     // Map of registered (alive) data nodes
     private ConcurrentHashMap<String, SocketChannel> dataNodes = null;
 
     // List of registered data nodes
-    private List<String> dataNodeList = null;
+    private static List<String> dataNodeList = null;
 
     // Map of data node socket to last heartbeat time (milisecond);
     private ConcurrentHashMap<String, Integer> nodeLastHeartbeat = null;
@@ -74,6 +77,7 @@ public class NameNode extends Thread {
                         break;
                     case CONNECTION:
                         String addr = obj.sock.getRemoteAddress().toString();
+//                        System.out.println(addr);
                         System.out.println("Connection estanblished from " + addr);
 
                         // Register new DataNode
@@ -177,7 +181,7 @@ public class NameNode extends Thread {
      * @param localPath localPath to import from
      * @param whfsPath WHFS path to import to
      */
-    private void importHandler(String localPath, String whfsPath){
+    private void importHandler(String localPath, String whfsPath) {
         // Register whfs file
         whfsFiles.add(whfsPath);
 
@@ -195,33 +199,37 @@ public class NameNode extends Thread {
         // Get splited files
         File baseDir = new File(Config.LOCAL_BASE_PATH);
         File[] fileList = baseDir.listFiles();
-        for(File file : fileList){
+        for (File file : fileList) {
             String path = file.getAbsolutePath();
-            if(path.contains(outputPath)){
+            if (path.contains(outputPath)) {
                 splitFiles.add(file);
             }
         }
 
         // Divide blocks by nodes
         int numNodes = dataNodeList.size();
-        if(numNodes == 0){
+        if (numNodes == 0) {
             System.out.println("No available dataNodes");
             return;
         }
-        int blockPerNode = splitFiles.size()/numNodes;
+        int blockPerNode = splitFiles.size() / numNodes;
 
         // Send each part of blocks to specific DataNode averagely
         int offset = 0;
         int nodeIndex = 0;
         int blockIndex = 0;
         ArrayList<String> currBlocks;
-        for(File file : splitFiles){
-            String fullname = dataNodeList.get(nodeIndex).split("/")[1];
-            String hostname = fullname.split(":")[0];
+        ArrayList<Integer> fileBlockNode = new ArrayList<>();
+        fileBlockNode.add(nodeIndex);
+        fileNodes = new HashMap<>();
+        for (File file : splitFiles) {
+//            String fullname = dataNodeList.get(nodeIndex).split("/")[1];
+            String hostname = Config.SLAVE_NODES[nodeIndex];
 
             // Register block to node
             String indexStr = blockIndex < 10 ? "0" + String.valueOf(blockIndex) : String.valueOf(blockIndex);
             blockName = blockPrefix + indexStr;
+//            fileBlocks.add(blockName);
             blockToNode.put(blockName, hostname);
 
             // Add header to file (hostname and block name)
@@ -232,7 +240,7 @@ public class NameNode extends Thread {
             FileManager.transferFile(file, hostname, Config.DATANODE_FILE_PORT);
 
             // Register node to block
-            if(!nodeBlocks.containsKey(hostname)){
+            if (!nodeBlocks.containsKey(hostname)) {
                 currBlocks = new ArrayList<>();
             } else {
                 currBlocks = nodeBlocks.get(hostname);
@@ -245,15 +253,16 @@ public class NameNode extends Thread {
             blockIndex++;
 
             // move to next node
-            if(offset == blockPerNode && nodeIndex < numNodes - 1){
+            if (offset == blockPerNode && nodeIndex < numNodes - 1) {
                 offset = 0;
                 nodeIndex++;
+                fileBlockNode.add(nodeIndex);
             }
         }
 
         // Clean up
         Util.clearFiles(splitFiles);
-
+        fileNodes.put(whfsPath,fileBlockNode);
     }
 
     /**
@@ -284,5 +293,13 @@ public class NameNode extends Thread {
                 nodeLastHeartbeat.put(msg.getAddr().toString(), 0);
                 break;
         }
+    }
+
+    public static HashMap<String, ArrayList<Integer>> getfileNodes(){
+        return fileNodes;
+    }
+
+    public static List<String> getdataNodeList(){
+        return dataNodeList;
     }
 }

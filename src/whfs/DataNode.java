@@ -1,7 +1,7 @@
 package whfs;
 
 import config.Config;
-import debug.Debug;
+import Debug.Debug;
 import file.FileManager;
 import msg.MessageManager;
 import net.Client;
@@ -40,10 +40,10 @@ public class DataNode extends Thread{
         startFileServer();
 
         boolean closed = false;
-        while(!closed){
+        while (!closed) {
             NetObject obj = heartbeatClient.listen();
 
-            switch (obj.type){
+            switch (obj.type) {
                 case DATA:
                     break;
                 case EXCEPTION:
@@ -83,7 +83,7 @@ public class DataNode extends Thread{
     /**
      * Start a file server daemon
      */
-    private void startFileServer(){
+    private void startFileServer() {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -134,7 +134,6 @@ public class DataNode extends Thread{
                         default:
                             System.out.println("Type Error");
                     }
-
                 }
             }
         }).start();

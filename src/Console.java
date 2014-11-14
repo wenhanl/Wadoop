@@ -6,10 +6,12 @@ import java.util.concurrent.BlockingDeque;
  */
 public class Console extends Thread{
 
-    private BlockingDeque<String> blockingDeque = null;
+    private BlockingDeque<String> NameNodeBlockingDeque = null;
+    private BlockingDeque<String> JobTrackerBlockingDeque = null;
 
-    public Console(BlockingDeque<String> q){
-        blockingDeque = q;
+    public Console(BlockingDeque<String> q, BlockingDeque<String> q2){
+        NameNodeBlockingDeque = q;
+        JobTrackerBlockingDeque = q2;
     }
 
     @Override
@@ -28,7 +30,10 @@ public class Console extends Thread{
 
     void commandHandler(String input){
         try {
-            blockingDeque.put(input);
+            if(input.contains(("mprun")))
+                JobTrackerBlockingDeque.put(input);
+            else
+                NameNodeBlockingDeque.put(input);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

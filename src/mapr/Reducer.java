@@ -1,11 +1,24 @@
 package mapr;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Created by wenhanl on 14-11-1.
+ * Created by CGJ on 14-11-12.
  */
-public class Reducer<InKey, InValue, OutKey, OutValue> implements Serializable {
-    public void reduce(InKey inkey, InValue inValue, OutKey outKey, OutValue outValue){};
-    public void print(){};
+public abstract class Reducer<InKey, InValue, OutKey, OutValue> implements Serializable {
+    protected List<Record<OutKey, OutValue>> output;
+
+    public Reducer() {
+        output = new ArrayList<Record<OutKey, OutValue>>();
+    }
+
+    abstract public void reduce(InKey inkey, List<InValue> inValue);
+
+    public List<Record<OutKey, OutValue>> getReduceOutput() {
+        return output;
+    }
+
+    public void print() {}
 }
