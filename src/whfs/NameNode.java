@@ -340,13 +340,13 @@ public class NameNode extends Thread {
                 }
 
                 // Inform from host to transfer a copy of this block to "to" host
-                if(to != null){
-                    blockFromTo(from, to);
-                    // Add this block to "To" node
-                    ArrayList<String> toBlock = nodeBlocks.get(to);
-                    toBlock.add(block);
-                    nodeBlocks.put(to, toBlock);
-                }
+//                if(to != null){
+//                    blockFromTo(from, to);
+//                    // Add this block to "To" node
+//                    ArrayList<String> toBlock = nodeBlocks.get(to);
+//                    toBlock.add(block);
+//                    nodeBlocks.put(to, toBlock);
+//                }
             }
         }
 
@@ -356,7 +356,7 @@ public class NameNode extends Thread {
     }
 
     private void blockFromTo(String from, String to){
-        
+
     }
 
     private String getHostname(String addr){
