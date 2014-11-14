@@ -8,6 +8,7 @@ public class Slave {
     public static void main(String[] args){
         if(args.length != 1){
             System.out.println("Usage: java Slave <Master_address>");
+            return;
         }
 
         DataNode dataNode = new DataNode(args[0]);

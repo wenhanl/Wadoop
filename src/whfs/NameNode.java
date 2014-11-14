@@ -37,7 +37,7 @@ public class NameNode extends Thread {
     private List<String> whfsFiles = null;
 
     // Map of block to DataNode
-    private ConcurrentHashMap<String, String> blockToNode = null;
+    private ConcurrentHashMap<String, ArrayList<String>> blockToNode = null;
 
     // Blocking queue for inter-thread communication
     private BlockingDeque<String> blockingDeque = null;
@@ -169,6 +169,10 @@ public class NameNode extends Thread {
             for(String node : dataNodeList){
                 System.out.println(node);
             }
+        } else if (args[0].equals("replica")){
+            System.out.println(blockToNode.toString());
+        } else if (args[0].equals("nodes")){
+            System.out.println(nodeBlocks.toString());
         }
     }
 
@@ -217,44 +221,57 @@ public class NameNode extends Thread {
         }
         int blockPerNode = splitFiles.size()/numNodes;
 
-        // Send each part of blocks to specific DataNode averagely
+        // Send each part of blocks to specific DataNode as averagely as possible
         int offset = 0;
         int nodeIndex = 0;
         int blockIndex = 0;
         ArrayList<String> currBlocks;
-        for(File file : splitFiles){
-            String fullname = dataNodeList.get(nodeIndex).split("/")[1];
-            String hostname = fullname.split(":")[0];
+        ArrayList<String> currNodes;
+        int replica = Math.min(Config.NUM_WHFS_REPLICA, numNodes);  // Replica number can't be greater than number of nodes
+        for(int rep = 0; rep < replica; rep++) {
+            offset = 0;
+            nodeIndex = rep;
+            blockIndex = 0;
+            for (File file : splitFiles) {
+                String fullname = dataNodeList.get(nodeIndex % numNodes).split("/")[1];
+                String hostname = fullname.split(":")[0];
 
-            // Register block to node
-            String indexStr = blockIndex < 10 ? "0" + String.valueOf(blockIndex) : String.valueOf(blockIndex);
-            blockName = blockPrefix + indexStr;
-            blockToNode.put(blockName, hostname);
+                // Register block to node
+                String indexStr = blockIndex < 10 ? "0" + String.valueOf(blockIndex) : String.valueOf(blockIndex);
+                blockName = blockPrefix + indexStr;
+                if(blockToNode.containsKey(blockName)){
+                    currNodes = blockToNode.get(blockName);
+                } else {
+                    currNodes = new ArrayList<>();
+                }
+                currNodes.add(hostname);
+                blockToNode.put(blockName, currNodes);
 
-            // Add header to file (hostname and block name)
-            String header = hostname + "\t" + blockName + "\n";
-            FileManager.addHeader(file, header);
+                // Add header to file (hostname and block name)
+                String header = hostname + "\t" + blockName + "\n";
+                FileManager.addHeader(file, header);
 
-            // Transfer file to remote DataNode
-            FileManager.transferFile(file, hostname, Config.DATANODE_FILE_PORT);
+                // Transfer file to remote DataNode
+                FileManager.transferFile(file, hostname, Config.DATANODE_FILE_PORT);
 
-            // Register node to block
-            if(!nodeBlocks.containsKey(hostname)){
-                currBlocks = new ArrayList<>();
-            } else {
-                currBlocks = nodeBlocks.get(hostname);
-            }
+                // Register node to block
+                if (!nodeBlocks.containsKey(hostname)) {
+                    currBlocks = new ArrayList<>();
+                } else {
+                    currBlocks = nodeBlocks.get(hostname);
+                }
 
-            currBlocks.add(blockName);
-            nodeBlocks.put(hostname, currBlocks);
+                currBlocks.add(blockName);
+                nodeBlocks.put(hostname, currBlocks);
 
-            offset++;
-            blockIndex++;
+                offset++;
+                blockIndex++;
 
-            // move to next node
-            if(offset == blockPerNode && nodeIndex < numNodes - 1){
-                offset = 0;
-                nodeIndex++;
+                // move to next node
+                if (offset == blockPerNode && nodeIndex < numNodes - 1) {
+                    offset = 0;
+                    nodeIndex++;
+                }
             }
         }
 

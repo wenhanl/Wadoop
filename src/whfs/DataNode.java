@@ -126,6 +126,8 @@ public class DataNode extends Thread{
                             FileManager.mv(temp, blockFile);
                             temp.delete();
 
+                            System.out.println(blockName + " transfer successfully.");
+
                             // Close socket every time file received
                             try {
                                 obj.sock.close();
@@ -134,7 +136,7 @@ public class DataNode extends Thread{
                             }
                             break;
                         case CONNECTION:
-                            System.out.println("Connection estanblished");
+                            Debug.print("Connection estanblished");
                             break;
                         case EXCEPTION:
                             System.out.println("Connection reset");
