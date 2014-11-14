@@ -233,8 +233,10 @@ public class NameNode extends Thread {
             nodeIndex = rep;
             blockIndex = 0;
             for (File file : splitFiles) {
-                String fullname = dataNodeList.get(nodeIndex % numNodes).split("/")[1];
-                String hostname = fullname.split(":")[0];
+                int ni= nodeIndex % numNodes;
+                String fullname = dataNodeList.get(ni).split("/")[1];
+                //String hostname = fullname.split(":")[0];
+                String hostname = fullname;
 
                 // Register block to node
                 String indexStr = blockIndex < 10 ? "0" + String.valueOf(blockIndex) : String.valueOf(blockIndex);
@@ -252,7 +254,7 @@ public class NameNode extends Thread {
                 FileManager.addHeader(file, header);
 
                 // Transfer file to remote DataNode
-                FileManager.transferFile(file, hostname, Config.DATANODE_FILE_PORT);
+                //FileManager.transferFile(file, hostname, Config.DATANODE_FILE_PORT);
 
                 // Register node to block
                 if (!nodeBlocks.containsKey(hostname)) {
@@ -268,7 +270,7 @@ public class NameNode extends Thread {
                 blockIndex++;
 
                 // move to next node
-                if (offset == blockPerNode && nodeIndex < numNodes - 1) {
+                if (offset == blockPerNode && blockIndex <= (numNodes - 1) * blockPerNode) {
                     offset = 0;
                     nodeIndex++;
                 }
