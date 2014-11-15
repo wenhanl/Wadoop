@@ -18,7 +18,7 @@ public class Config {
     public static final int TASK_PORT = 18432;
 
     // Number of replica per data block
-    public static final int NUM_WHFS_REPLICA = 3;
+    public static final int NUM_WHFS_REPLICA = 2;
 
     // Number of lines per block
     public static final int BLOCK_SIZE = 1;

@@ -10,7 +10,12 @@ import java.io.IOException;
 public class Slave {
 
     public static void main(String[] args) throws IOException {
-        DataNode dataNode = new DataNode();
+        if(args.length != 1){
+            System.out.println("Usage: java Slave <Master_address>");
+            return;
+        }
+
+        DataNode dataNode = new DataNode(args[0]);
         dataNode.start();
 
         TaskTracker tasktracker = new TaskTracker(Config.TASK_PORT);

@@ -40,7 +40,7 @@ public class NameNode extends Thread {
     private List<String> whfsFiles = null;
 
     // Map of block to DataNode
-    private ConcurrentHashMap<String, String> blockToNode = null;
+    private ConcurrentHashMap<String, ArrayList<String>> blockToNode = null;
 
     // Blocking queue for inter-thread communication
     private BlockingDeque<String> blockingDeque = null;
@@ -140,7 +140,8 @@ public class NameNode extends Thread {
                         time += 2000;
                         if (time >= Config.HEARTBEAT_TIMEOUT){
                             System.out.println("DataNode " + addr + " timeout");
-                            deleteDataNode(addr);
+
+                            heartBeatTimeoutAction(addr);
                         }
                         nodeLastHeartbeat.put(addr, time);
                     }
@@ -173,6 +174,10 @@ public class NameNode extends Thread {
             for(String node : dataNodeList){
                 System.out.println(node);
             }
+        } else if (args[0].equals("replica")){
+            System.out.println(blockToNode.toString());
+        } else if (args[0].equals("nodes")){
+            System.out.println(nodeBlocks.toString());
         }
     }
 
@@ -206,6 +211,13 @@ public class NameNode extends Thread {
             }
         }
 
+        Collections.sort(splitFiles, new Comparator<File>() {
+            @Override
+            public int compare(File o1, File o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
+
         // Divide blocks by nodes
         int numNodes = dataNodeList.size();
         if (numNodes == 0) {
@@ -213,56 +225,116 @@ public class NameNode extends Thread {
             return;
         }
         int blockPerNode = splitFiles.size() / numNodes;
+        if(blockPerNode == 0) blockPerNode = 1;
 
-        // Send each part of blocks to specific DataNode averagely
+        // Send each part of blocks to specific DataNode as averagely as possible
         int offset = 0;
         int nodeIndex = 0;
         int blockIndex = 0;
-        ArrayList<String> currBlocks;
         ArrayList<Integer> fileBlockNode = new ArrayList<>();
-        fileBlockNode.add(nodeIndex);
         fileNodes = new HashMap<>();
-        for (File file : splitFiles) {
-//            String fullname = dataNodeList.get(nodeIndex).split("/")[1];
-            String hostname = Config.SLAVE_NODES[nodeIndex];
+        ArrayList<String> currBlocks;
+        ArrayList<String> currNodes;
+//<<<<<<< HEAD
+//        ArrayList<Integer> fileBlockNode = new ArrayList<>();
+//        fileBlockNode.add(nodeIndex);
+//        fileNodes = new HashMap<>();
+//        for (File file : splitFiles) {
+////            String fullname = dataNodeList.get(nodeIndex).split("/")[1];
+//            String hostname = Config.SLAVE_NODES[nodeIndex];
+//
+//            // Register block to node
+//            String indexStr = blockIndex < 10 ? "0" + String.valueOf(blockIndex) : String.valueOf(blockIndex);
+//            blockName = blockPrefix + indexStr;
+////            fileBlocks.add(blockName);
+//            blockToNode.put(blockName, hostname);
+//
+//            // Add header to file (hostname and block name)
+//            String header = hostname + "\t" + blockName + "\n";
+//            FileManager.addHeader(file, header);
+//
+//            // Transfer file to remote DataNode
+//            FileManager.transferFile(file, hostname, Config.DATANODE_FILE_PORT);
+//
+//            // Register node to block
+//            if (!nodeBlocks.containsKey(hostname)) {
+//                currBlocks = new ArrayList<>();
+//            } else {
+//                currBlocks = nodeBlocks.get(hostname);
+//            }
+//=======
 
-            // Register block to node
-            String indexStr = blockIndex < 10 ? "0" + String.valueOf(blockIndex) : String.valueOf(blockIndex);
-            blockName = blockPrefix + indexStr;
-//            fileBlocks.add(blockName);
-            blockToNode.put(blockName, hostname);
+//
+//            ArrayList<Integer> fileBlockNode = new ArrayList<>();
+//            fileBlockNode.add(nodeIndex);
+//            fileNodes = new HashMap<>();
 
-            // Add header to file (hostname and block name)
-            String header = hostname + "\t" + blockName + "\n";
-            FileManager.addHeader(file, header);
 
-            // Transfer file to remote DataNode
-            FileManager.transferFile(file, hostname, Config.DATANODE_FILE_PORT);
+        int replica = Math.min(Config.NUM_WHFS_REPLICA, numNodes);  // Replica number can't be greater than number of nodes
+        for(int rep = 0; rep < replica; rep++) {
+            offset = 0;
+            nodeIndex = rep;
+            blockIndex = 0;
+            for (File file : splitFiles) {
+                int ni = nodeIndex % numNodes;
+                if(rep == 0)
+                    fileBlockNode.add(nodeIndex);
+                String fullname = dataNodeList.get(ni).split("/")[1];
+                String hostname = fullname.split(":")[0];
 
-            // Register node to block
-            if (!nodeBlocks.containsKey(hostname)) {
-                currBlocks = new ArrayList<>();
-            } else {
-                currBlocks = nodeBlocks.get(hostname);
+                // Register block to node
+                String indexStr = blockIndex < 10 ? "0" + String.valueOf(blockIndex) : String.valueOf(blockIndex);
+                blockName = blockPrefix + indexStr;
+
+                if (blockToNode.containsKey(blockName)) {
+                    currNodes = blockToNode.get(blockName);
+                } else {
+                    currNodes = new ArrayList<>();
+                }
+                currNodes.add(hostname);
+                blockToNode.put(blockName, currNodes);
+//>>>>>>> 812321829daa50393288db0dd84ad75964ba09d6
+
+                // Add header to file (hostname and block name)
+                if (rep == 0) {
+                    String header = hostname + "\t" + blockName + "\n";
+                    FileManager.addHeader(file, header);
+                }
+
+                // Transfer file to remote DataNode
+                FileManager.transferFile(file, hostname, Config.DATANODE_FILE_PORT);
+
+                // Register node to block
+                if (!nodeBlocks.containsKey(hostname)) {
+                    currBlocks = new ArrayList<>();
+                } else {
+                    currBlocks = nodeBlocks.get(hostname);
+                }
+
+                currBlocks.add(blockName);
+                nodeBlocks.put(hostname, currBlocks);
+
+                offset++;
+                blockIndex++;
+
+                // move to next node
+                if (offset == blockPerNode && blockIndex <= (numNodes - 1) * blockPerNode) {
+                    offset = 0;
+                    nodeIndex++;
+                    if(rep == 0)
+                        fileBlockNode.add(nodeIndex);
+                }
             }
 
-            currBlocks.add(blockName);
-            nodeBlocks.put(hostname, currBlocks);
 
-            offset++;
-            blockIndex++;
 
-            // move to next node
-            if (offset == blockPerNode && nodeIndex < numNodes - 1) {
-                offset = 0;
-                nodeIndex++;
-                fileBlockNode.add(nodeIndex);
-            }
+
         }
 
         // Clean up
         Util.clearFiles(splitFiles);
         fileNodes.put(whfsPath,fileBlockNode);
+
     }
 
     /**
@@ -295,11 +367,62 @@ public class NameNode extends Thread {
         }
     }
 
+//<<<<<<< HEAD
     public static HashMap<String, ArrayList<Integer>> getfileNodes(){
         return fileNodes;
     }
 
-    public static List<String> getdataNodeList(){
+    public static List<String> getdataNodeList() {
         return dataNodeList;
+    }
+//=======
+    private synchronized void heartBeatTimeoutAction(String addr){
+        // Remove from node list and heartbeat list
+        deleteDataNode(addr);
+        String hostname = getHostname(addr);
+        ArrayList<String> blockList = nodeBlocks.get(hostname);
+
+        for(String block : blockList){
+            ArrayList<String> nodelist = blockToNode.get(block);
+
+            // Remove addr from this block's blockToNode map
+            nodelist.remove(hostname);
+            blockToNode.put(block, nodelist);
+
+
+            // When there is more than 1 node have this block, move it to node without this block
+            if(nodelist.size() > 0 && dataNodeList.size() > 1) {
+                String from = nodelist.get(0);
+                String to = null;
+                for(String node : dataNodeList){
+                    String host = getHostname(node);
+                    if(!nodelist.contains(host)){
+                        to = host;
+                    }
+                }
+
+                // Inform from host to transfer a copy of this block to "to" host
+//                if(to != null){
+//                    blockFromTo(from, to);
+//                    // Add this block to "To" node
+//                    ArrayList<String> toBlock = nodeBlocks.get(to);
+//                    toBlock.add(block);
+//                    nodeBlocks.put(to, toBlock);
+//                }
+            }
+        }
+
+        // Remove from node to block list
+        nodeBlocks.remove(hostname);
+
+    }
+
+    private void blockFromTo(String from, String to){
+
+    }
+
+    private String getHostname(String addr){
+        return addr.split("/")[1].split(":")[0];
+//>>>>>>> 812321829daa50393288db0dd84ad75964ba09d6
     }
 }

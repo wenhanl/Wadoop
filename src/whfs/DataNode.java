@@ -21,11 +21,16 @@ public class DataNode extends Thread{
     private Client heartbeatClient = null;
     private MessageManager heartbeat = null;
     private Server fileServer = null;
+    private String remoteAddr = null;
+
+    public DataNode(String remoteAddr){
+        this.remoteAddr = remoteAddr;
+    }
 
     @Override
     public void run() {
         try {
-            heartbeatClient = new Client("localhost", Config.NAMENODE_PORT);
+            heartbeatClient = new Client(remoteAddr, Config.NAMENODE_PORT);
         } catch (IOException e) {
             System.out.println(e.getMessage());
             return;
@@ -93,6 +98,9 @@ public class DataNode extends Thread{
                 // Create a directory for temp file storage
                 File tempDir = FileManager.createDir("/tmp/whfstemp");
 
+                // Create a directory for whfs data
+                File whfsDir = FileManager.createDir(Config.WHFS_BASE_PATH);
+
                 // WHFS base dir
                 String whfsBase = Config.WHFS_BASE_PATH;
 
@@ -118,6 +126,8 @@ public class DataNode extends Thread{
                             FileManager.mv(temp, blockFile);
                             temp.delete();
 
+                            System.out.println(blockName + " transfer successfully.");
+
                             // Close socket every time file received
                             try {
                                 obj.sock.close();
@@ -126,7 +136,7 @@ public class DataNode extends Thread{
                             }
                             break;
                         case CONNECTION:
-                            System.out.println("Connection estanblished");
+                            Debug.print("Connection estanblished");
                             break;
                         case EXCEPTION:
                             System.out.println("Connection reset");

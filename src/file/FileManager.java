@@ -1,5 +1,7 @@
 package file;
 
+import debug.Debug;
+
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -44,7 +46,6 @@ public class FileManager {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("finished writing");
     }
 
     /**
@@ -65,7 +66,6 @@ public class FileManager {
                 buffer.clear();
             }
             fileChannel.close();
-            System.out.println("End of file reached..Closing channel");
             aFile.close();
 
         } catch (FileNotFoundException e) {
