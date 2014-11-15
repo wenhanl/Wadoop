@@ -251,7 +251,7 @@ public class NameNode extends Thread {
 
                 // Add header to file (hostname and block name)
                 if(rep == 0) {
-                    String header = hostname + "\t" + blockName + "\n";
+                    String header = blockName + "\n";
                     FileManager.addHeader(file, header);
                 }
 
