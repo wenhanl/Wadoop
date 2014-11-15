@@ -74,10 +74,11 @@ public class NameNode extends Thread {
                         break;
                     case CONNECTION:
                         String addr = obj.sock.getRemoteAddress().toString();
-                        System.out.println("Connection estanblished from " + addr);
+                        String hostname = getHostname(addr);
+                        System.out.println("Connection estanblished from " + hostname);
 
                         // Register new DataNode
-                        addDataNode(addr, obj.sock);
+                        addDataNode(hostname, obj.sock);
 
                         break;
                     case EXCEPTION:
@@ -235,8 +236,7 @@ public class NameNode extends Thread {
             blockIndex = 0;
             for (File file : splitFiles) {
                 int ni= nodeIndex % numNodes;
-                String fullname = dataNodeList.get(ni).split("/")[1];
-                String hostname = fullname.split(":")[0];
+                String hostname = dataNodeList.get(ni);
 
                 // Register block to node
                 String indexStr = blockIndex < 10 ? "0" + String.valueOf(blockIndex) : String.valueOf(blockIndex);
@@ -309,7 +309,7 @@ public class NameNode extends Thread {
         switch(msg.getType()){
             case HEARTBEAT:
                 // Reset wait time to zero
-                nodeLastHeartbeat.put(msg.getAddr().toString(), 0);
+                nodeLastHeartbeat.put(getHostname(msg.getAddr().toString()), 0);
                 break;
         }
     }
@@ -333,9 +333,8 @@ public class NameNode extends Thread {
                 String from = nodelist.get(0);
                 String to = null;
                 for(String node : dataNodeList){
-                    String host = getHostname(node);
-                    if(!nodelist.contains(host)){
-                        to = host;
+                    if(!nodelist.contains(node)){
+                        to = node;
                     }
                 }
 
@@ -356,7 +355,7 @@ public class NameNode extends Thread {
     }
 
     private void blockFromTo(String from, String to){
-
+        SocketChannel sc = dataNodes.get(from);
     }
 
     private String getHostname(String addr){
