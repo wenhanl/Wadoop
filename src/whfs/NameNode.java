@@ -314,10 +314,9 @@ public class NameNode extends Thread {
         }
     }
 
-    private synchronized void heartBeatTimeoutAction(String addr){
+    private synchronized void heartBeatTimeoutAction(String hostname){
         // Remove from node list and heartbeat list
-        deleteDataNode(addr);
-        String hostname = getHostname(addr);
+        deleteDataNode(hostname);
         ArrayList<String> blockList = nodeBlocks.get(hostname);
 
         for(String block : blockList){

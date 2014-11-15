@@ -96,7 +96,7 @@ public class DataNode extends Thread{
                 fileServer = new Server(Config.DATANODE_FILE_PORT, true);
 
                 // Create a directory for temp file storage
-                File tempDir = FileManager.createDir("/tmp/whfstemp");
+                File tempDir = FileManager.createDir(Config.WHFS_TEMP_PATH);
 
                 // Create a directory for whfs data
                 File whfsDir = FileManager.createDir(Config.WHFS_BASE_PATH);
