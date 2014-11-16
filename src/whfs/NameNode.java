@@ -281,7 +281,7 @@ public class NameNode extends Thread {
                     fileBlockNode.add(nodeIndex);
 //                String fullname = dataNodeList.get(ni).split("/")[1];
 //                String hostname = fullname.split(":")[0];
-                String hostname = Config.SLAVE_NODES[nodeIndex];
+                String hostname = Config.SLAVE_NODES[ni];
 
                 // Register block to node
                 String indexStr = blockIndex < 10 ? "0" + String.valueOf(blockIndex) : String.valueOf(blockIndex);
@@ -368,7 +368,7 @@ public class NameNode extends Thread {
         }
     }
 
-//<<<<<<< HEAD
+    //<<<<<<< HEAD
     public static HashMap<String, ArrayList<Integer>> getfileNodes(){
         return fileNodes;
     }
@@ -376,7 +376,7 @@ public class NameNode extends Thread {
     public static List<String> getdataNodeList() {
         return dataNodeList;
     }
-//=======
+    //=======
     private synchronized void heartBeatTimeoutAction(String addr){
         // Remove from node list and heartbeat list
         deleteDataNode(addr);

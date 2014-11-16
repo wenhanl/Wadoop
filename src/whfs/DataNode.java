@@ -96,7 +96,7 @@ public class DataNode extends Thread{
                 fileServer = new Server(Config.DATANODE_FILE_PORT, true);
 
                 // Create a directory for temp file storage
-                File tempDir = FileManager.createDir("/tmp/whfstemp");
+                File tempDir = FileManager.createDir(Config.WHFS_TEMP_PATH);
 
                 // Create a directory for whfs data
                 File whfsDir = FileManager.createDir(Config.WHFS_BASE_PATH);
@@ -113,16 +113,11 @@ public class DataNode extends Thread{
                             File temp = new File(localStore);
                             FileManager.receiveFile(localStore, obj.sock);
 
-                            // Retrieve header
-                            String[] header = FileManager.retrieveHeader(temp).split("\t");
-                            String fromHost = header[0];
-                            String blockName = header[1];
-
-                            // Get specific directory for fromHost
-                            File fromHostDir = FileManager.createDir(whfsBase + fromHost);
+                            // Retrieve header (blockname)
+                            String blockName = FileManager.retrieveHeader(temp);
 
                             // Move temp to block file specified in header
-                            String blockFile = fromHostDir.getAbsolutePath() + "/" + blockName;
+                            String blockFile = whfsDir.getAbsolutePath() + "/" + blockName;
                             FileManager.mv(temp, blockFile);
                             temp.delete();
 

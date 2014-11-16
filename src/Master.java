@@ -1,12 +1,10 @@
-import Debug.Debug;
+
 import Tracker.JobTracker;
 import whfs.NameNode;
 
+
 import java.io.IOException;
-import java.nio.channels.SocketChannel;
-import java.util.HashMap;
 import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 
 /**
@@ -15,6 +13,12 @@ import java.util.concurrent.LinkedBlockingDeque;
 public class Master {
 
     public static void main(String[] args) throws IOException {
+
+        System.out.println("###############################################################\n" +
+                "#                    Welcome to Wadoop                        # \n" +
+                "#              Author: Guanjie Chen, Wenhan Lu                #\n" +
+                "#               Enjoy your MapReduce Jobs!!!                  #\n" +
+                "###############################################################");
 
         BlockingDeque<String> fsMsgQueue = new LinkedBlockingDeque<>();
         BlockingDeque<String> JTQueue = new LinkedBlockingDeque<>();

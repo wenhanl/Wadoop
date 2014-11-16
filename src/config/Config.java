@@ -43,11 +43,17 @@ public class Config {
     public static final int DATANODE_FILE_PORT = 15441;
 
     // Local base path
-    public static final String LOCAL_BASE_PATH = "/tmp/640local/";
+    public static final String LOCAL_BASE_PATH = "/tmp/wenhanlocal/";
 
     // WHFS base path
-    public static final String WHFS_BASE_PATH = "/tmp/whfs/";
+//    public static final String WHFS_BASE_PATH = "/tmp/whfs/";
 
     // map and reduce result file folder
     public static final String MAP_RESULTS_FOLDER = "/tmp/mapreduce/";
+
+
+    public static final String WHFS_BASE_PATH = "/tmp/wenhanwhfs/";
+
+    // WHFS temp path
+    public static final String WHFS_TEMP_PATH = "/tmp/wenhantemp";
 }
