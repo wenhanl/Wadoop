@@ -279,8 +279,9 @@ public class NameNode extends Thread {
                 int ni = nodeIndex % numNodes;
                 if(rep == 0)
                     fileBlockNode.add(nodeIndex);
-                String fullname = dataNodeList.get(ni).split("/")[1];
-                String hostname = fullname.split(":")[0];
+//                String fullname = dataNodeList.get(ni).split("/")[1];
+//                String hostname = fullname.split(":")[0];
+                String hostname = Config.SLAVE_NODES[nodeIndex];
 
                 // Register block to node
                 String indexStr = blockIndex < 10 ? "0" + String.valueOf(blockIndex) : String.valueOf(blockIndex);

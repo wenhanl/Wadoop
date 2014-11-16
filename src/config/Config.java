@@ -6,10 +6,11 @@ package config;
 public class Config {
 
 
-    public static final String MASTER_NODE = "localhost";
+    public static final String MASTER_NODE = "unix1.andrew.cmu.edu";
 //    // SlaveNodes info
     public static final String[] SLAVE_NODES = {
-            "localhost"  //"unix2.andrew.cmu.edu"
+            "unix2.andrew.cmu.edu",  //"unix2.andrew.cmu.edu"
+            "unix3.andrew.cmu.edu"
     };
     // port for transferring data in mapreduce phase
     public static final int DATA_PORT = 19782;
