@@ -18,8 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by wenhanl on 14-11-3.
  */
 public class NameNode extends Thread {
-    // Map from fileName to block list
-    private HashMap<String, ArrayList<Integer>> fileBlock = null;
 
     //file in which nodes --  CGJ
     private static HashMap<String, ArrayList<Integer>> fileNodes = null;
@@ -52,7 +50,6 @@ public class NameNode extends Thread {
         nodeLastHeartbeat = new ConcurrentHashMap<>();
         nodeBlocks = new ConcurrentHashMap<>();
         blockToNode = new ConcurrentHashMap<>();
-        fileBlock = new HashMap<>();
         whfsFiles = Collections.synchronizedList(new ArrayList<String>());
     }
 
@@ -80,8 +77,10 @@ public class NameNode extends Thread {
 //                        System.out.println(addr);
                         System.out.println("Connection estanblished from " + addr);
 
+                        String hostname = getHostname(addr);
+
                         // Register new DataNode
-                        addDataNode(addr, obj.sock);
+                        addDataNode(hostname, obj.sock);
 
                         break;
                     case EXCEPTION:
@@ -279,8 +278,7 @@ public class NameNode extends Thread {
                 int ni = nodeIndex % numNodes;
                 if(rep == 0)
                     fileBlockNode.add(nodeIndex);
-//                String fullname = dataNodeList.get(ni).split("/")[1];
-//                String hostname = fullname.split(":")[0];
+
                 String hostname = Config.SLAVE_NODES[ni];
 
                 // Register block to node
@@ -294,7 +292,6 @@ public class NameNode extends Thread {
                 }
                 currNodes.add(hostname);
                 blockToNode.put(blockName, currNodes);
-//>>>>>>> 812321829daa50393288db0dd84ad75964ba09d6
 
                 // Add header to file (hostname and block name)
                 if (rep == 0) {
@@ -326,9 +323,6 @@ public class NameNode extends Thread {
                         fileBlockNode.add(nodeIndex);
                 }
             }
-
-
-
 
         }
 
@@ -363,12 +357,11 @@ public class NameNode extends Thread {
         switch(msg.getType()){
             case HEARTBEAT:
                 // Reset wait time to zero
-                nodeLastHeartbeat.put(msg.getAddr().toString(), 0);
+                nodeLastHeartbeat.put(getHostname(msg.getAddr().toString()), 0);
                 break;
         }
     }
 
-    //<<<<<<< HEAD
     public static HashMap<String, ArrayList<Integer>> getfileNodes(){
         return fileNodes;
     }
@@ -376,7 +369,7 @@ public class NameNode extends Thread {
     public static List<String> getdataNodeList() {
         return dataNodeList;
     }
-    //=======
+
     private synchronized void heartBeatTimeoutAction(String addr){
         // Remove from node list and heartbeat list
         deleteDataNode(addr);
@@ -424,6 +417,5 @@ public class NameNode extends Thread {
 
     private String getHostname(String addr){
         return addr.split("/")[1].split(":")[0];
-//>>>>>>> 812321829daa50393288db0dd84ad75964ba09d6
     }
 }
