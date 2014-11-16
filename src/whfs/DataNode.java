@@ -1,7 +1,7 @@
 package whfs;
 
 import config.Config;
-import Debug.Debug;
+
 import file.FileManager;
 import msg.MessageManager;
 import net.Client;
@@ -9,9 +9,9 @@ import net.NetObject;
 import net.Server;
 import java.io.*;
 
+import debug.Debug;
+
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 
 
 /**
@@ -45,13 +45,8 @@ public class DataNode extends Thread{
         startFileServer();
 
         boolean closed = false;
-<<<<<<< HEAD
         while(!closed){
             NetObject obj = msgClient.listen();
-=======
-        while (!closed) {
-            NetObject obj = heartbeatClient.listen();
->>>>>>> e0af7aa5b40586fa6f47811665de27d5ab94bc66
 
             switch (obj.type) {
                 case DATA:
