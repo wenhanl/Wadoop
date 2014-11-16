@@ -18,7 +18,7 @@ import java.nio.channels.FileChannel;
  * Created by wenhanl on 14-11-3.
  */
 public class DataNode extends Thread{
-    private Client heartbeatClient = null;
+    private Client msgClient = null;
     private MessageManager heartbeat = null;
     private Server fileServer = null;
     private String remoteAddr = null;
@@ -30,12 +30,12 @@ public class DataNode extends Thread{
     @Override
     public void run() {
         try {
-            heartbeatClient = new Client(remoteAddr, Config.NAMENODE_PORT);
+            msgClient = new Client(remoteAddr, Config.NAMENODE_PORT);
         } catch (IOException e) {
             System.out.println(e.getMessage());
             return;
         }
-        heartbeat = new MessageManager(heartbeatClient);
+        heartbeat = new MessageManager(msgClient);
 
         // Start a thread to send heartbeats
         Thread sendHeartbeat = startHeartbeat();
@@ -46,7 +46,7 @@ public class DataNode extends Thread{
 
         boolean closed = false;
         while(!closed){
-            NetObject obj = heartbeatClient.listen();
+            NetObject obj = msgClient.listen();
 
             switch (obj.type){
                 case DATA:
