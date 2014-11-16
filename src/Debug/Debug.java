@@ -1,4 +1,4 @@
-package debug;
+package Debug;
 
 /**
  * Created by wenhanl on 14-11-11.

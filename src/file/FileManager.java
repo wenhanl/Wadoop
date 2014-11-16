@@ -1,6 +1,6 @@
 package file;
 
-import debug.Debug;
+import Debug.Debug;
 
 import java.io.*;
 import java.net.InetSocketAddress;

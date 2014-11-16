@@ -10,10 +10,10 @@ import java.util.ArrayList;
  * Created by wenhanl on 14-11-11.
  */
 public class Util {
-    public static void splitFile(String inputPath, String outputPath){
+    public static void splitFile(String inputPath, String outputPath) {
         try {
             // Run split command to split file
-            String splitCommand = "split -l" + + Config.BLOCK_SIZE + " ";
+            String splitCommand = "split -l" + +Config.BLOCK_SIZE + " ";
             splitCommand += inputPath + " ";
             splitCommand += outputPath;
             Process splitProcess = Runtime.getRuntime().exec(splitCommand);
@@ -32,8 +32,8 @@ public class Util {
         }
     }
 
-    public static void clearFiles(ArrayList<File> files){
-        for(File file : files){
+    public static void clearFiles(ArrayList<File> files) {
+        for (File file : files) {
             file.delete();
         }
     }

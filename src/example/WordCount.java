@@ -1,50 +1,41 @@
 package example;
 
+import mapr.MapReduceJob;
 import mapr.Mapper;
 import mapr.Record;
 import mapr.Reducer;
 
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.StringTokenizer;
+import java.util.List;
 
 /**
- * Created by wenhanl on 14-11-1.
+ * Created by CGJ on 14-11-12.
  */
-public class WordCount {
 
-    public static class Map extends Mapper<Long, String, String, Integer> {
-        public static Record<String, Integer> out;
+public class WordCount extends MapReduceJob<Integer, String, String, String> {
 
-        public void map(Long key, String value, Record<String, Integer> output) throws IOException {
-            String line = value.toString();
-            StringTokenizer tokenizer = new StringTokenizer(line);
-            while (tokenizer.hasMoreTokens()) {
-                String word = tokenizer.nextToken();
-                out.set(word, 1);
+    public Mapper<Integer, String, String, String> getMapper() {
+        return new Mapper<Integer, String, String, String>() {
+            //map each key to "1"
+            public void map(Integer key, String value) {
+                String[] words = value.replaceAll("[^a-zA-Z ]", "").toLowerCase().split(" ");
+                for (String keyWord : words) {
+                    if(keyWord.length()!=0)
+                        output.add(new Record<String, String>(keyWord.trim(), "1"));
+                }
             }
-        }
-
-        public void print(){
-            System.out.println("mapper");
-        }
+        };
     }
 
-    public static class Reduce extends Reducer<String, Integer, String, Integer> {
-        public static Record<String, Integer> out;
-        public void reduce(String key, Iterator<Integer> values, Record<String, Integer> output) throws IOException {
-            int sum = 0;
-            while (values.hasNext()) {
-                sum += values.next();
+    public Reducer<String, String, String, String> getReducer() {
+        return new Reducer<String, String, String, String>() {
+            //the value of the same key is put in a list
+            public void reduce(String key, List<String> values) {
+                Integer sum = 0;
+                for (String value : values) {
+                    sum += Integer.parseInt(value);
+                }
+                output.add(new Record<String, String>(key, sum.toString()));
             }
-            output.set(key, sum);
-        }
-
-        public void print(){
-            System.out.println("reducer");
-        }
+        };
     }
-
-
-
 }

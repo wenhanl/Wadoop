@@ -1,3 +1,5 @@
 *.iml
 bin/*
 test/*
+.DS_*
+.idea
