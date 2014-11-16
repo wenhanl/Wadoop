@@ -234,39 +234,6 @@ public class NameNode extends Thread {
         fileNodes = new HashMap<>();
         ArrayList<String> currBlocks;
         ArrayList<String> currNodes;
-//<<<<<<< HEAD
-//        ArrayList<Integer> fileBlockNode = new ArrayList<>();
-//        fileBlockNode.add(nodeIndex);
-//        fileNodes = new HashMap<>();
-//        for (File file : splitFiles) {
-////            String fullname = dataNodeList.get(nodeIndex).split("/")[1];
-//            String hostname = Config.SLAVE_NODES[nodeIndex];
-//
-//            // Register block to node
-//            String indexStr = blockIndex < 10 ? "0" + String.valueOf(blockIndex) : String.valueOf(blockIndex);
-//            blockName = blockPrefix + indexStr;
-////            fileBlocks.add(blockName);
-//            blockToNode.put(blockName, hostname);
-//
-//            // Add header to file (hostname and block name)
-//            String header = hostname + "\t" + blockName + "\n";
-//            FileManager.addHeader(file, header);
-//
-//            // Transfer file to remote DataNode
-//            FileManager.transferFile(file, hostname, Config.DATANODE_FILE_PORT);
-//
-//            // Register node to block
-//            if (!nodeBlocks.containsKey(hostname)) {
-//                currBlocks = new ArrayList<>();
-//            } else {
-//                currBlocks = nodeBlocks.get(hostname);
-//            }
-//=======
-
-//
-//            ArrayList<Integer> fileBlockNode = new ArrayList<>();
-//            fileBlockNode.add(nodeIndex);
-//            fileNodes = new HashMap<>();
 
 
         int replica = Math.min(Config.NUM_WHFS_REPLICA, numNodes);  // Replica number can't be greater than number of nodes

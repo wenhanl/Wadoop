@@ -1,6 +1,7 @@
 package Tracker;
 
 import config.Config;
+import file.FileManager;
 import mapr.*;
 import msg.MPMessage;
 import msg.MPMessageManager;
@@ -77,6 +78,9 @@ public class TaskTracker extends Thread{
 
 
     public void run() {
+        // Create a directory for mapreduce medium result
+        FileManager.createDir(Config.MAP_RESULTS_FOLDER);
+
         while (true) {
             try {
                 final Socket sock = slaveServer.accept();
