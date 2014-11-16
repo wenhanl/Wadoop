@@ -114,10 +114,15 @@ public class DataNode extends Thread{
                             FileManager.receiveFile(localStore, obj.sock);
 
                             // Retrieve header (blockname)
-                            String blockName = FileManager.retrieveHeader(temp);
+                            String[] header = FileManager.retrieveHeader(temp).split("\t");
+                            String fromHost = header[0];
+                            String blockName = header[1];
+
+                            // Get specific directory for fromHost
+                            File fromHostDir = FileManager.createDir(whfsBase + fromHost);
 
                             // Move temp to block file specified in header
-                            String blockFile = whfsDir.getAbsolutePath() + "/" + blockName;
+                            String blockFile = fromHostDir.getAbsolutePath() + "/" + blockName;
                             FileManager.mv(temp, blockFile);
                             temp.delete();
 
